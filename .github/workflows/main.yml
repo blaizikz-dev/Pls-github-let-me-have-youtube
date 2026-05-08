@@ -106,6 +106,14 @@ jobs:
           deno --version
 
           pip3 install --upgrade yt-dlp
+          pip3 install bgutil-ytdlp-pot-provider
+
+      - name: Start PO Token Server
+        run: |
+          echo "Starting bgutil-ytdlp-pot-provider server on port 8080..."
+          bgutil-ytdlp-pot-provider --port 8080 &
+          sleep 5
+          echo "PO Token server is running (PID $!)."
 
       - name: Download Setup (functions & config)
         env:
@@ -197,19 +205,29 @@ jobs:
               SUB_FLAGS=""
             elif [ "$QUALITY" = "best" ]; then
               COMMON_FLAGS="--merge-output-format mp4 --format-sort res,+codec:vp9.1,+size --no-cache-dir --output ${TMP_DIR}/%(title)s.%(ext)s --no-part --no-playlist --retries 5 --fragment-retries 5 --no-check-certificates --concurrent-fragments 8 --buffer-size 16K --http-chunk-size 10M --progress --newline"
-              SUB_FLAGS="--write-subs --write-auto-subs --sub-langs all --embed-subs"
+              SUB_FLAGS="--write-subs --write-auto-subs --sub-langs all --embed-subs --sleep-subtitles 2 --sleep-requests 1"
             else
               COMMON_FLAGS="--merge-output-format mp4 --no-cache-dir --output ${TMP_DIR}/%(title)s.%(ext)s --no-part --no-playlist --retries 5 --fragment-retries 5 --no-check-certificates --concurrent-fragments 8 --buffer-size 16K --http-chunk-size 10M --progress --newline"
-              SUB_FLAGS="--write-subs --write-auto-subs --sub-langs all --embed-subs"
+              SUB_FLAGS="--write-subs --write-auto-subs --sub-langs all --embed-subs --sleep-subtitles 2 --sleep-requests 1"
             fi
 
+            # Reordered: android_vr (METHOD 1) first – it gets the best quality without PO token
             case $METHOD in
-              1)
+              1)  # android_vr
                 yt-dlp \
                   --proxy "socks5://127.0.0.1:1080" \
                   --format "$FORMAT" \
                   $COMMON_FLAGS \
-                  --extractor-args "youtube:player_client=web" \
+                  --extractor-args "youtube:player_client=android_vr;pot_token_base_url=http://127.0.0.1:8080" \
+                  $SUB_FLAGS \
+                  "$URL"
+                ;;
+              2)  # web + deno + remote EJS (still useful if android_vr fails)
+                yt-dlp \
+                  --proxy "socks5://127.0.0.1:1080" \
+                  --format "$FORMAT" \
+                  $COMMON_FLAGS \
+                  --extractor-args "youtube:player_client=web;pot_token_base_url=http://127.0.0.1:8080" \
                   --js-runtimes deno \
                   --remote-components ejs:github \
                   --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36" \
@@ -217,12 +235,12 @@ jobs:
                   $SUB_FLAGS \
                   "$URL"
                 ;;
-              2)
+              3)  # web + deno + ejs:npm
                 yt-dlp \
                   --proxy "socks5://127.0.0.1:1080" \
                   --format "$FORMAT" \
                   $COMMON_FLAGS \
-                  --extractor-args "youtube:player_client=web" \
+                  --extractor-args "youtube:player_client=web;pot_token_base_url=http://127.0.0.1:8080" \
                   --js-runtimes deno \
                   --remote-components ejs:npm \
                   --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36" \
@@ -230,59 +248,50 @@ jobs:
                   $SUB_FLAGS \
                   "$URL"
                 ;;
-              3)
+              4)  # web+mweb+android_vr combined
                 yt-dlp \
                   --proxy "socks5://127.0.0.1:1080" \
                   --format "$FORMAT" \
                   $COMMON_FLAGS \
-                  --extractor-args "youtube:player_client=web,mweb,android_vr" \
+                  --extractor-args "youtube:player_client=web,mweb,android_vr;pot_token_base_url=http://127.0.0.1:8080" \
                   --js-runtimes deno \
                   --remote-components ejs:github \
                   $SUB_FLAGS \
                   "$URL"
                 ;;
-              4)
+              5)  # mweb
                 yt-dlp \
                   --proxy "socks5://127.0.0.1:1080" \
                   --format "$FORMAT" \
                   $COMMON_FLAGS \
-                  --extractor-args "youtube:player_client=mweb" \
+                  --extractor-args "youtube:player_client=mweb;pot_token_base_url=http://127.0.0.1:8080" \
                   $SUB_FLAGS \
                   "$URL"
                 ;;
-              5)
-                yt-dlp \
-                  --proxy "socks5://127.0.0.1:1080" \
-                  --format "$FORMAT" \
-                  $COMMON_FLAGS \
-                  --extractor-args "youtube:player_client=android_vr" \
-                  $SUB_FLAGS \
-                  "$URL"
-                ;;
-              6)
+              6)  # web no-proxy (only if others fail)
                 yt-dlp \
                   --format "$FORMAT" \
                   $COMMON_FLAGS \
-                  --extractor-args "youtube:player_client=web" \
+                  --extractor-args "youtube:player_client=web;pot_token_base_url=http://127.0.0.1:8080" \
                   --js-runtimes deno \
                   --remote-components ejs:github \
                   $SUB_FLAGS \
                   "$URL"
                 ;;
-              7)
+              7)  # mweb no-proxy
                 yt-dlp \
                   --format "$FORMAT" \
                   $COMMON_FLAGS \
-                  --extractor-args "youtube:player_client=mweb" \
+                  --extractor-args "youtube:player_client=mweb;pot_token_base_url=http://127.0.0.1:8080" \
                   $SUB_FLAGS \
                   "$URL"
                 ;;
-              8)
+              8)  # android (last resort)
                 yt-dlp \
                   --proxy "socks5://127.0.0.1:1080" \
                   --format "$FORMAT" \
                   $COMMON_FLAGS \
-                  --extractor-args "youtube:player_client=android" \
+                  --extractor-args "youtube:player_client=android;pot_token_base_url=http://127.0.0.1:8080" \
                   --user-agent "Mozilla/5.0 (Linux; Android 12; SM-S906N Build/QP1A.190711.020) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Mobile Safari/537.36" \
                   $SUB_FLAGS \
                   "$URL"
@@ -371,18 +380,27 @@ jobs:
               SUB_FLAGS=""
             elif [ "$QUALITY" = "best" ]; then
               COMMON_FLAGS="--merge-output-format mp4 --format-sort res,+codec:vp9.1,+size --no-cache-dir --output ${TMP_DIR}/%(title)s.%(ext)s --no-part --no-playlist --retries 5 --fragment-retries 5 --no-check-certificates --concurrent-fragments 8 --buffer-size 16K --http-chunk-size 10M --progress --newline"
-              SUB_FLAGS="--write-subs --write-auto-subs --sub-langs all --embed-subs"
+              SUB_FLAGS="--write-subs --write-auto-subs --sub-langs all --embed-subs --sleep-subtitles 2 --sleep-requests 1"
             else
               COMMON_FLAGS="--merge-output-format mp4 --no-cache-dir --output ${TMP_DIR}/%(title)s.%(ext)s --no-part --no-playlist --retries 5 --fragment-retries 5 --no-check-certificates --concurrent-fragments 8 --buffer-size 16K --http-chunk-size 10M --progress --newline"
-              SUB_FLAGS="--write-subs --write-auto-subs --sub-langs all --embed-subs"
+              SUB_FLAGS="--write-subs --write-auto-subs --sub-langs all --embed-subs --sleep-subtitles 2 --sleep-requests 1"
             fi
             case $METHOD in
-              1)
+              1)  # android_vr
                 yt-dlp \
                   --proxy "socks5://127.0.0.1:1080" \
                   --format "$FORMAT" \
                   $COMMON_FLAGS \
-                  --extractor-args "youtube:player_client=web" \
+                  --extractor-args "youtube:player_client=android_vr;pot_token_base_url=http://127.0.0.1:8080" \
+                  $SUB_FLAGS \
+                  "$URL"
+                ;;
+              2)  # web + deno + ejs:github
+                yt-dlp \
+                  --proxy "socks5://127.0.0.1:1080" \
+                  --format "$FORMAT" \
+                  $COMMON_FLAGS \
+                  --extractor-args "youtube:player_client=web;pot_token_base_url=http://127.0.0.1:8080" \
                   --js-runtimes deno \
                   --remote-components ejs:github \
                   --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36" \
@@ -390,12 +408,12 @@ jobs:
                   $SUB_FLAGS \
                   "$URL"
                 ;;
-              2)
+              3)  # web + deno + ejs:npm
                 yt-dlp \
                   --proxy "socks5://127.0.0.1:1080" \
                   --format "$FORMAT" \
                   $COMMON_FLAGS \
-                  --extractor-args "youtube:player_client=web" \
+                  --extractor-args "youtube:player_client=web;pot_token_base_url=http://127.0.0.1:8080" \
                   --js-runtimes deno \
                   --remote-components ejs:npm \
                   --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36" \
@@ -403,59 +421,50 @@ jobs:
                   $SUB_FLAGS \
                   "$URL"
                 ;;
-              3)
+              4)  # combined
                 yt-dlp \
                   --proxy "socks5://127.0.0.1:1080" \
                   --format "$FORMAT" \
                   $COMMON_FLAGS \
-                  --extractor-args "youtube:player_client=web,mweb,android_vr" \
+                  --extractor-args "youtube:player_client=web,mweb,android_vr;pot_token_base_url=http://127.0.0.1:8080" \
                   --js-runtimes deno \
                   --remote-components ejs:github \
                   $SUB_FLAGS \
                   "$URL"
                 ;;
-              4)
+              5)  # mweb
                 yt-dlp \
                   --proxy "socks5://127.0.0.1:1080" \
                   --format "$FORMAT" \
                   $COMMON_FLAGS \
-                  --extractor-args "youtube:player_client=mweb" \
+                  --extractor-args "youtube:player_client=mweb;pot_token_base_url=http://127.0.0.1:8080" \
                   $SUB_FLAGS \
                   "$URL"
                 ;;
-              5)
-                yt-dlp \
-                  --proxy "socks5://127.0.0.1:1080" \
-                  --format "$FORMAT" \
-                  $COMMON_FLAGS \
-                  --extractor-args "youtube:player_client=android_vr" \
-                  $SUB_FLAGS \
-                  "$URL"
-                ;;
-              6)
+              6)  # web no proxy
                 yt-dlp \
                   --format "$FORMAT" \
                   $COMMON_FLAGS \
-                  --extractor-args "youtube:player_client=web" \
+                  --extractor-args "youtube:player_client=web;pot_token_base_url=http://127.0.0.1:8080" \
                   --js-runtimes deno \
                   --remote-components ejs:github \
                   $SUB_FLAGS \
                   "$URL"
                 ;;
-              7)
+              7)  # mweb no proxy
                 yt-dlp \
                   --format "$FORMAT" \
                   $COMMON_FLAGS \
-                  --extractor-args "youtube:player_client=mweb" \
+                  --extractor-args "youtube:player_client=mweb;pot_token_base_url=http://127.0.0.1:8080" \
                   $SUB_FLAGS \
                   "$URL"
                 ;;
-              8)
+              8)  # android last resort
                 yt-dlp \
                   --proxy "socks5://127.0.0.1:1080" \
                   --format "$FORMAT" \
                   $COMMON_FLAGS \
-                  --extractor-args "youtube:player_client=android" \
+                  --extractor-args "youtube:player_client=android;pot_token_base_url=http://127.0.0.1:8080" \
                   --user-agent "Mozilla/5.0 (Linux; Android 12; SM-S906N Build/QP1A.190711.020) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Mobile Safari/537.36" \
                   $SUB_FLAGS \
                   "$URL"
