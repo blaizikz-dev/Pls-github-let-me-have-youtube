@@ -197,10 +197,10 @@ jobs:
               SUB_FLAGS=""
             elif [ "$QUALITY" = "best" ]; then
               COMMON_FLAGS="--merge-output-format mp4 --format-sort res,+codec:vp9.1,+size --no-cache-dir --output ${TMP_DIR}/%(title)s.%(ext)s --no-part --no-playlist --retries 5 --fragment-retries 5 --no-check-certificates --concurrent-fragments 8 --buffer-size 16K --http-chunk-size 10M --progress --newline --ignore-errors"
-              SUB_FLAGS="--write-subs --write-auto-subs --sub-langs all --embed-subs --sleep-subtitles 5 --sleep-requests 1"
+              SUB_FLAGS="--write-subs --write-auto-subs --sub-langs 'en.*,fa.*' --embed-subs --sleep-subtitles 3 --sleep-requests 1"
             else
               COMMON_FLAGS="--merge-output-format mp4 --no-cache-dir --output ${TMP_DIR}/%(title)s.%(ext)s --no-part --no-playlist --retries 5 --fragment-retries 5 --no-check-certificates --concurrent-fragments 8 --buffer-size 16K --http-chunk-size 10M --progress --newline --ignore-errors"
-              SUB_FLAGS="--write-subs --write-auto-subs --sub-langs all --embed-subs --sleep-subtitles 5 --sleep-requests 1"
+              SUB_FLAGS="--write-subs --write-auto-subs --sub-langs 'en.*,fa.*' --embed-subs --sleep-subtitles 3 --sleep-requests 1"
             fi
 
             # Reordered: android_vr (METHOD 1) first – it gets the best quality without PO token
@@ -372,10 +372,10 @@ jobs:
               SUB_FLAGS=""
             elif [ "$QUALITY" = "best" ]; then
               COMMON_FLAGS="--merge-output-format mp4 --format-sort res,+codec:vp9.1,+size --no-cache-dir --output ${TMP_DIR}/%(title)s.%(ext)s --no-part --no-playlist --retries 5 --fragment-retries 5 --no-check-certificates --concurrent-fragments 8 --buffer-size 16K --http-chunk-size 10M --progress --newline --ignore-errors"
-              SUB_FLAGS="--write-subs --write-auto-subs --sub-langs all --embed-subs --sleep-subtitles 5 --sleep-requests 1"
+              SUB_FLAGS="--write-subs --write-auto-subs --sub-langs 'en.*,fa.*' --embed-subs --sleep-subtitles 3 --sleep-requests 1"
             else
               COMMON_FLAGS="--merge-output-format mp4 --no-cache-dir --output ${TMP_DIR}/%(title)s.%(ext)s --no-part --no-playlist --retries 5 --fragment-retries 5 --no-check-certificates --concurrent-fragments 8 --buffer-size 16K --http-chunk-size 10M --progress --newline --ignore-errors"
-              SUB_FLAGS="--write-subs --write-auto-subs --sub-langs all --embed-subs --sleep-subtitles 5 --sleep-requests 1"
+              SUB_FLAGS="--write-subs --write-auto-subs --sub-langs 'en.*,fa.*' --embed-subs --sleep-subtitles 3 --sleep-requests 1"
             fi
             case $METHOD in
               1)  # android_vr
