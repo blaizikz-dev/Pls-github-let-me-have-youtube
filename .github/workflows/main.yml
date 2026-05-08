@@ -203,7 +203,6 @@ jobs:
               SUB_FLAGS="--write-subs --write-auto-subs --sub-langs 'en.*,fa.*' --embed-subs --sleep-subtitles 5 --sleep-requests 1"
             fi
 
-            # android_vr first – gets best quality without PO token
             case $METHOD in
               1)  # android_vr
                 yt-dlp \
@@ -529,25 +528,6 @@ jobs:
             fi
 
             find "$TMP_DIR" -name "*.part" -delete
-
-            # ── SUBTITLE VERIFICATION ──────────────────────────────────────────
-            # Check that the downloaded video actually contains subtitle streams
-            VIDEO_FILE=$(ls "$TMP_DIR"/*.mp4 "$TMP_DIR"/*.webm "$TMP_DIR"/*.mkv 2>/dev/null | head -1)
-            if [ -n "$VIDEO_FILE" ]; then
-              SUB_COUNT=$(ffprobe -v error -show_entries stream=index:stream_tags=language -of csv=p=0 "$VIDEO_FILE" 2>/dev/null | grep -c "subrip\|mov_text\|webvtt\|srt" || echo "0")
-              if [ "$SUB_COUNT" -gt 0 ]; then
-                echo "🎉 SUCCESS: Subtitles found ($SUB_COUNT subtitle stream(s))! Proceeding with packaging."
-              else
-                echo "❌ FAILED: No subtitle streams found in the video. Discarding the download."
-                rm -rf "$TMP_DIR"
-                echo "Skipping URL $URL_INDEX / $TOTAL_URLS"
-                continue
-              fi
-            else
-              echo "❌ FAILED: No video file found after download. Skipping."
-              rm -rf "$TMP_DIR"
-              continue
-            fi
 
             echo "Download complete!"
             echo "Files in $TMP_DIR:"
