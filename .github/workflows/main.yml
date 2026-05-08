@@ -108,21 +108,20 @@ jobs:
           pip3 install --upgrade yt-dlp
           pip3 install bgutil-ytdlp-pot-provider
 
-      - name: Start PO Token Server
+      - name: Start PO Token Provider (Docker)
         run: |
-          echo "Starting PO Token server on port 8080..."
-          python3 -m bgutil_ytdlp_pot_provider --port 8080 &
-          SERVER_PID=$!
-          echo "Waiting for server to be ready..."
+          echo "Starting bgutil-ytdlp-pot-provider Docker container on port 4416..."
+          docker run --name bgutil-provider -d --init -p 4416:4416 brainicism/bgutil-ytdlp-pot-provider
+          echo "Waiting for PO Token server to be ready..."
           for i in {1..15}; do
-            if curl -s http://127.0.0.1:8080/ping > /dev/null 2>&1; then
-              echo "PO Token server is ready (PID $SERVER_PID)."
+            if curl -s http://127.0.0.1:4416/ping > /dev/null 2>&1; then
+              echo "PO Token server is ready."
               break
             fi
             echo "Attempt $i/15 – server not ready yet, waiting..."
             sleep 2
           done
-          if ! curl -s http://127.0.0.1:8080/ping > /dev/null 2>&1; then
+          if ! curl -s http://127.0.0.1:4416/ping > /dev/null 2>&1; then
             echo "WARNING: PO Token server did not start properly. Downloads may fail."
           fi
 
@@ -229,7 +228,7 @@ jobs:
                   --proxy "socks5://127.0.0.1:1080" \
                   --format "$FORMAT" \
                   $COMMON_FLAGS \
-                  --extractor-args "youtube:player_client=android_vr;pot_token_base_url=http://127.0.0.1:8080" \
+                  --extractor-args "youtube:player_client=android_vr;youtubepot-bgutilhttp:base_url=http://127.0.0.1:4416" \
                   $SUB_FLAGS \
                   "$URL"
                 ;;
@@ -238,7 +237,7 @@ jobs:
                   --proxy "socks5://127.0.0.1:1080" \
                   --format "$FORMAT" \
                   $COMMON_FLAGS \
-                  --extractor-args "youtube:player_client=web;pot_token_base_url=http://127.0.0.1:8080" \
+                  --extractor-args "youtube:player_client=web;youtubepot-bgutilhttp:base_url=http://127.0.0.1:4416" \
                   --js-runtimes deno \
                   --remote-components ejs:github \
                   --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36" \
@@ -251,7 +250,7 @@ jobs:
                   --proxy "socks5://127.0.0.1:1080" \
                   --format "$FORMAT" \
                   $COMMON_FLAGS \
-                  --extractor-args "youtube:player_client=web;pot_token_base_url=http://127.0.0.1:8080" \
+                  --extractor-args "youtube:player_client=web;youtubepot-bgutilhttp:base_url=http://127.0.0.1:4416" \
                   --js-runtimes deno \
                   --remote-components ejs:npm \
                   --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36" \
@@ -264,7 +263,7 @@ jobs:
                   --proxy "socks5://127.0.0.1:1080" \
                   --format "$FORMAT" \
                   $COMMON_FLAGS \
-                  --extractor-args "youtube:player_client=web,mweb,android_vr;pot_token_base_url=http://127.0.0.1:8080" \
+                  --extractor-args "youtube:player_client=web,mweb,android_vr;youtubepot-bgutilhttp:base_url=http://127.0.0.1:4416" \
                   --js-runtimes deno \
                   --remote-components ejs:github \
                   $SUB_FLAGS \
@@ -275,7 +274,7 @@ jobs:
                   --proxy "socks5://127.0.0.1:1080" \
                   --format "$FORMAT" \
                   $COMMON_FLAGS \
-                  --extractor-args "youtube:player_client=mweb;pot_token_base_url=http://127.0.0.1:8080" \
+                  --extractor-args "youtube:player_client=mweb;youtubepot-bgutilhttp:base_url=http://127.0.0.1:4416" \
                   $SUB_FLAGS \
                   "$URL"
                 ;;
@@ -283,7 +282,7 @@ jobs:
                 yt-dlp \
                   --format "$FORMAT" \
                   $COMMON_FLAGS \
-                  --extractor-args "youtube:player_client=web;pot_token_base_url=http://127.0.0.1:8080" \
+                  --extractor-args "youtube:player_client=web;youtubepot-bgutilhttp:base_url=http://127.0.0.1:4416" \
                   --js-runtimes deno \
                   --remote-components ejs:github \
                   $SUB_FLAGS \
@@ -293,7 +292,7 @@ jobs:
                 yt-dlp \
                   --format "$FORMAT" \
                   $COMMON_FLAGS \
-                  --extractor-args "youtube:player_client=mweb;pot_token_base_url=http://127.0.0.1:8080" \
+                  --extractor-args "youtube:player_client=mweb;youtubepot-bgutilhttp:base_url=http://127.0.0.1:4416" \
                   $SUB_FLAGS \
                   "$URL"
                 ;;
@@ -302,7 +301,7 @@ jobs:
                   --proxy "socks5://127.0.0.1:1080" \
                   --format "$FORMAT" \
                   $COMMON_FLAGS \
-                  --extractor-args "youtube:player_client=android;pot_token_base_url=http://127.0.0.1:8080" \
+                  --extractor-args "youtube:player_client=android;youtubepot-bgutilhttp:base_url=http://127.0.0.1:4416" \
                   --user-agent "Mozilla/5.0 (Linux; Android 12; SM-S906N Build/QP1A.190711.020) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Mobile Safari/537.36" \
                   $SUB_FLAGS \
                   "$URL"
@@ -402,7 +401,7 @@ jobs:
                   --proxy "socks5://127.0.0.1:1080" \
                   --format "$FORMAT" \
                   $COMMON_FLAGS \
-                  --extractor-args "youtube:player_client=android_vr;pot_token_base_url=http://127.0.0.1:8080" \
+                  --extractor-args "youtube:player_client=android_vr;youtubepot-bgutilhttp:base_url=http://127.0.0.1:4416" \
                   $SUB_FLAGS \
                   "$URL"
                 ;;
@@ -411,7 +410,7 @@ jobs:
                   --proxy "socks5://127.0.0.1:1080" \
                   --format "$FORMAT" \
                   $COMMON_FLAGS \
-                  --extractor-args "youtube:player_client=web;pot_token_base_url=http://127.0.0.1:8080" \
+                  --extractor-args "youtube:player_client=web;youtubepot-bgutilhttp:base_url=http://127.0.0.1:4416" \
                   --js-runtimes deno \
                   --remote-components ejs:github \
                   --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36" \
@@ -424,7 +423,7 @@ jobs:
                   --proxy "socks5://127.0.0.1:1080" \
                   --format "$FORMAT" \
                   $COMMON_FLAGS \
-                  --extractor-args "youtube:player_client=web;pot_token_base_url=http://127.0.0.1:8080" \
+                  --extractor-args "youtube:player_client=web;youtubepot-bgutilhttp:base_url=http://127.0.0.1:4416" \
                   --js-runtimes deno \
                   --remote-components ejs:npm \
                   --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36" \
@@ -437,7 +436,7 @@ jobs:
                   --proxy "socks5://127.0.0.1:1080" \
                   --format "$FORMAT" \
                   $COMMON_FLAGS \
-                  --extractor-args "youtube:player_client=web,mweb,android_vr;pot_token_base_url=http://127.0.0.1:8080" \
+                  --extractor-args "youtube:player_client=web,mweb,android_vr;youtubepot-bgutilhttp:base_url=http://127.0.0.1:4416" \
                   --js-runtimes deno \
                   --remote-components ejs:github \
                   $SUB_FLAGS \
@@ -448,7 +447,7 @@ jobs:
                   --proxy "socks5://127.0.0.1:1080" \
                   --format "$FORMAT" \
                   $COMMON_FLAGS \
-                  --extractor-args "youtube:player_client=mweb;pot_token_base_url=http://127.0.0.1:8080" \
+                  --extractor-args "youtube:player_client=mweb;youtubepot-bgutilhttp:base_url=http://127.0.0.1:4416" \
                   $SUB_FLAGS \
                   "$URL"
                 ;;
@@ -456,7 +455,7 @@ jobs:
                 yt-dlp \
                   --format "$FORMAT" \
                   $COMMON_FLAGS \
-                  --extractor-args "youtube:player_client=web;pot_token_base_url=http://127.0.0.1:8080" \
+                  --extractor-args "youtube:player_client=web;youtubepot-bgutilhttp:base_url=http://127.0.0.1:4416" \
                   --js-runtimes deno \
                   --remote-components ejs:github \
                   $SUB_FLAGS \
@@ -466,7 +465,7 @@ jobs:
                 yt-dlp \
                   --format "$FORMAT" \
                   $COMMON_FLAGS \
-                  --extractor-args "youtube:player_client=mweb;pot_token_base_url=http://127.0.0.1:8080" \
+                  --extractor-args "youtube:player_client=mweb;youtubepot-bgutilhttp:base_url=http://127.0.0.1:4416" \
                   $SUB_FLAGS \
                   "$URL"
                 ;;
@@ -475,7 +474,7 @@ jobs:
                   --proxy "socks5://127.0.0.1:1080" \
                   --format "$FORMAT" \
                   $COMMON_FLAGS \
-                  --extractor-args "youtube:player_client=android;pot_token_base_url=http://127.0.0.1:8080" \
+                  --extractor-args "youtube:player_client=android;youtubepot-bgutilhttp:base_url=http://127.0.0.1:4416" \
                   --user-agent "Mozilla/5.0 (Linux; Android 12; SM-S906N Build/QP1A.190711.020) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Mobile Safari/537.36" \
                   $SUB_FLAGS \
                   "$URL"
@@ -796,11 +795,13 @@ jobs:
           echo "===== Video info file ====="
           cat /tmp/video_info.txt
 
-      - name: Stop WARP Container
+      - name: Stop Containers
         if: always()
         run: |
           docker stop warp || true
           docker rm warp || true
+          docker stop bgutil-provider || true
+          docker rm bgutil-provider || true
 
       - name: Incremental Commit & Push
         run: |
