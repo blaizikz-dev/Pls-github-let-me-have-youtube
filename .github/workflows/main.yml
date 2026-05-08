@@ -106,30 +106,6 @@ jobs:
           deno --version
 
           pip3 install --upgrade yt-dlp
-          pip3 install bgutil-ytdlp-pot-provider
-
-          # Ensure local bin is in PATH for subsequent steps
-          export PATH="$HOME/.local/bin:$PATH"
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
-
-      - name: Start PO Token Server
-        run: |
-          echo "Starting bgutil-ytdlp-pot-provider server on port 8080..."
-          python3 -m bgutil_ytdlp_pot_provider --port 8080 &
-          SERVER_PID=$!
-          echo "Waiting for server to be ready..."
-          for i in {1..15}; do
-            if curl -s http://127.0.0.1:8080/ping > /dev/null 2>&1; then
-              echo "PO Token server is ready (PID $SERVER_PID)."
-              break
-            fi
-            echo "Attempt $i/15 – server not ready yet, waiting..."
-            sleep 2
-          done
-          # Final check
-          if ! curl -s http://127.0.0.1:8080/ping > /dev/null 2>&1; then
-            echo "WARNING: PO Token server did not start properly. Downloads may fail."
-          fi
 
       - name: Download Setup (functions & config)
         env:
@@ -234,7 +210,7 @@ jobs:
                   --proxy "socks5://127.0.0.1:1080" \
                   --format "$FORMAT" \
                   $COMMON_FLAGS \
-                  --extractor-args "youtube:player_client=android_vr;pot_token_base_url=http://127.0.0.1:8080" \
+                  --extractor-args "youtube:player_client=android_vr" \
                   $SUB_FLAGS \
                   "$URL"
                 ;;
@@ -243,7 +219,7 @@ jobs:
                   --proxy "socks5://127.0.0.1:1080" \
                   --format "$FORMAT" \
                   $COMMON_FLAGS \
-                  --extractor-args "youtube:player_client=web;pot_token_base_url=http://127.0.0.1:8080" \
+                  --extractor-args "youtube:player_client=web" \
                   --js-runtimes deno \
                   --remote-components ejs:github \
                   --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36" \
@@ -256,7 +232,7 @@ jobs:
                   --proxy "socks5://127.0.0.1:1080" \
                   --format "$FORMAT" \
                   $COMMON_FLAGS \
-                  --extractor-args "youtube:player_client=web;pot_token_base_url=http://127.0.0.1:8080" \
+                  --extractor-args "youtube:player_client=web" \
                   --js-runtimes deno \
                   --remote-components ejs:npm \
                   --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36" \
@@ -269,7 +245,7 @@ jobs:
                   --proxy "socks5://127.0.0.1:1080" \
                   --format "$FORMAT" \
                   $COMMON_FLAGS \
-                  --extractor-args "youtube:player_client=web,mweb,android_vr;pot_token_base_url=http://127.0.0.1:8080" \
+                  --extractor-args "youtube:player_client=web,mweb,android_vr" \
                   --js-runtimes deno \
                   --remote-components ejs:github \
                   $SUB_FLAGS \
@@ -280,7 +256,7 @@ jobs:
                   --proxy "socks5://127.0.0.1:1080" \
                   --format "$FORMAT" \
                   $COMMON_FLAGS \
-                  --extractor-args "youtube:player_client=mweb;pot_token_base_url=http://127.0.0.1:8080" \
+                  --extractor-args "youtube:player_client=mweb" \
                   $SUB_FLAGS \
                   "$URL"
                 ;;
@@ -288,7 +264,7 @@ jobs:
                 yt-dlp \
                   --format "$FORMAT" \
                   $COMMON_FLAGS \
-                  --extractor-args "youtube:player_client=web;pot_token_base_url=http://127.0.0.1:8080" \
+                  --extractor-args "youtube:player_client=web" \
                   --js-runtimes deno \
                   --remote-components ejs:github \
                   $SUB_FLAGS \
@@ -298,7 +274,7 @@ jobs:
                 yt-dlp \
                   --format "$FORMAT" \
                   $COMMON_FLAGS \
-                  --extractor-args "youtube:player_client=mweb;pot_token_base_url=http://127.0.0.1:8080" \
+                  --extractor-args "youtube:player_client=mweb" \
                   $SUB_FLAGS \
                   "$URL"
                 ;;
@@ -307,7 +283,7 @@ jobs:
                   --proxy "socks5://127.0.0.1:1080" \
                   --format "$FORMAT" \
                   $COMMON_FLAGS \
-                  --extractor-args "youtube:player_client=android;pot_token_base_url=http://127.0.0.1:8080" \
+                  --extractor-args "youtube:player_client=android" \
                   --user-agent "Mozilla/5.0 (Linux; Android 12; SM-S906N Build/QP1A.190711.020) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Mobile Safari/537.36" \
                   $SUB_FLAGS \
                   "$URL"
@@ -407,7 +383,7 @@ jobs:
                   --proxy "socks5://127.0.0.1:1080" \
                   --format "$FORMAT" \
                   $COMMON_FLAGS \
-                  --extractor-args "youtube:player_client=android_vr;pot_token_base_url=http://127.0.0.1:8080" \
+                  --extractor-args "youtube:player_client=android_vr" \
                   $SUB_FLAGS \
                   "$URL"
                 ;;
@@ -416,7 +392,7 @@ jobs:
                   --proxy "socks5://127.0.0.1:1080" \
                   --format "$FORMAT" \
                   $COMMON_FLAGS \
-                  --extractor-args "youtube:player_client=web;pot_token_base_url=http://127.0.0.1:8080" \
+                  --extractor-args "youtube:player_client=web" \
                   --js-runtimes deno \
                   --remote-components ejs:github \
                   --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36" \
@@ -429,7 +405,7 @@ jobs:
                   --proxy "socks5://127.0.0.1:1080" \
                   --format "$FORMAT" \
                   $COMMON_FLAGS \
-                  --extractor-args "youtube:player_client=web;pot_token_base_url=http://127.0.0.1:8080" \
+                  --extractor-args "youtube:player_client=web" \
                   --js-runtimes deno \
                   --remote-components ejs:npm \
                   --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36" \
@@ -442,7 +418,7 @@ jobs:
                   --proxy "socks5://127.0.0.1:1080" \
                   --format "$FORMAT" \
                   $COMMON_FLAGS \
-                  --extractor-args "youtube:player_client=web,mweb,android_vr;pot_token_base_url=http://127.0.0.1:8080" \
+                  --extractor-args "youtube:player_client=web,mweb,android_vr" \
                   --js-runtimes deno \
                   --remote-components ejs:github \
                   $SUB_FLAGS \
@@ -453,7 +429,7 @@ jobs:
                   --proxy "socks5://127.0.0.1:1080" \
                   --format "$FORMAT" \
                   $COMMON_FLAGS \
-                  --extractor-args "youtube:player_client=mweb;pot_token_base_url=http://127.0.0.1:8080" \
+                  --extractor-args "youtube:player_client=mweb" \
                   $SUB_FLAGS \
                   "$URL"
                 ;;
@@ -461,7 +437,7 @@ jobs:
                 yt-dlp \
                   --format "$FORMAT" \
                   $COMMON_FLAGS \
-                  --extractor-args "youtube:player_client=web;pot_token_base_url=http://127.0.0.1:8080" \
+                  --extractor-args "youtube:player_client=web" \
                   --js-runtimes deno \
                   --remote-components ejs:github \
                   $SUB_FLAGS \
@@ -471,7 +447,7 @@ jobs:
                 yt-dlp \
                   --format "$FORMAT" \
                   $COMMON_FLAGS \
-                  --extractor-args "youtube:player_client=mweb;pot_token_base_url=http://127.0.0.1:8080" \
+                  --extractor-args "youtube:player_client=mweb" \
                   $SUB_FLAGS \
                   "$URL"
                 ;;
@@ -480,7 +456,7 @@ jobs:
                   --proxy "socks5://127.0.0.1:1080" \
                   --format "$FORMAT" \
                   $COMMON_FLAGS \
-                  --extractor-args "youtube:player_client=android;pot_token_base_url=http://127.0.0.1:8080" \
+                  --extractor-args "youtube:player_client=android" \
                   --user-agent "Mozilla/5.0 (Linux; Android 12; SM-S906N Build/QP1A.190711.020) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Mobile Safari/537.36" \
                   $SUB_FLAGS \
                   "$URL"
